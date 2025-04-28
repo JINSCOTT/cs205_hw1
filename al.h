@@ -5,20 +5,19 @@
 #include <sstream>
 #include <string>
 #include <chrono>
+#include <queue>
 
 
-std::vector<std::pair<int, int>> dirs = {{0,-1}, {0,1}, {-1,0}, {1,0}};
 
-class BaseSearch {
-    public:
-        virtual void search() = 0;
-        virtual void print() = 0;
-        virtual ~BaseSearch() = default;
-};
+int general_search( problem &p, )
 
-class 
+void ucs(std::priority_queue<Node, std::vector<Node>, NodeComparator> &open,
+         std::unordered_set<std::string> &closed, Node &node);
 
-
+class problem{
+    std::vector<std::pair<int, int>> OPERATORS = {{0,-1}, {0,1}, {-1,0}, {1,0}};
+    bool GOAL-TEST(const Node& node);
+}
 
 class Node {
     public:
@@ -42,8 +41,9 @@ class Node {
     private:
         int size = 8;
         int dim = 3;
-        int g = 0;  // cost so far
-        std::vector<int> STATE;
+        int gn = 0;
+        int hn = 0;
+        std::vector<int> data;
     };
 
 

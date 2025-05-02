@@ -18,10 +18,17 @@ Node::Node(const Node& other, std::pair<int, int> move, int gen) {
     this->data = other.data;
     this->gn = gen;
     this->hn = 0;
-    // We assume the move is valid
     int zero_index = std::find(this->data.begin(), this->data.end(), 0) - this->data.begin();
-    int new_zero_index = zero_index + move.first * dim + move.second;
-    std::swap(this->data[zero_index], this->data[new_zero_index]);
+    int zero_row = zero_index / dim;
+    int zero_col = zero_index % dim;
+    int new_row = zero_row + move.first;
+    int new_col = zero_col + move.second;
+    if (new_row >= 0 && new_row < dim && new_col >= 0 && new_col < dim) {
+        int new_zero_index = new_row * dim + new_col;
+        std::swap(this->data[zero_index], this->data[new_zero_index]);
+    } else {
+        throw std::invalid_argument("Invalid move");
+    }
 }
 
 std::vector<int> Node::get_state() const {
@@ -149,6 +156,7 @@ int GeneralSearch(Problem& problem,
 
     while (!frontier.empty()) {
         auto current_node = frontier.top();
+        std::cout << "pop\n";
         frontier.pop();
 
         
@@ -162,19 +170,28 @@ int GeneralSearch(Problem& problem,
 
         std::cout << "Exploring node with cost: " << current_node->get_cost() << "\n";
         current_node->print();
-
+        std::cout<<"insert string\n";
         explored.insert(current_node->get_state_string());
 
         // Expand node
         std::vector<std::shared_ptr<Node>> successors;
         for (const auto& op : problem.OPERATORS) {
-            auto child = std::make_shared<Node>(*current_node, op, current_node->get_gn() + 1);
-            if (explored.find(child->get_state_string()) == explored.end()) {
-                successors.push_back(child);
+            try {
+                std::cout << "Creating child node\n";
+                auto child = std::make_shared<Node>(*current_node, op, current_node->get_gn() + 1);
+                if (explored.find(child->get_state_string()) == explored.end()) {
+                    std::cout<< "push\n";
+                    successors.push_back(child);
+                }
+                std::cout << "Child node created\n";
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "Invalid move: " << e.what() << std::endl;
+                continue;
             }
         }
 
         // Apply the queueing function
+        std::cout << "Queueing function\n";
         queueing_function(frontier, successors, type);
     }
 

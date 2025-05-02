@@ -14,7 +14,7 @@
 
 
 int main( int argc, char* argv[] ) {
-    //std::ios_base::sync_with_stdio(false);
+    std::ios_base::sync_with_stdio(false);
 
     //Input checks
     if(argc != 3) {

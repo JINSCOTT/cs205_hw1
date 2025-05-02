@@ -5,8 +5,9 @@ Node::Node() {
     this->hn = 0;
     this->data.resize(this->dim * this->dim);
     for (int i = 0; i < this->dim * this->dim; i++) {
-        this->data[i] = i;
+        this->data[i] = i+1;
     }
+    this->data[this->dim * this->dim - 1] = 0; 
 }
 Node::Node(const std::vector<int>& data, int gen) {
     this->data = data;
@@ -65,21 +66,24 @@ void Node::print() const {
 
 int Node::get_manhattan_distance() {
     int distance = 0;
+    int dim = 3; // Dimension of the puzzle (3x3)
     for (int i = 0; i < this->data.size(); ++i) {
-        if (this->data[i] != 0) {
-            int goal_row = this->data[i] / this->dim;
-            int goal_col = this->data[i] % this->dim;
-            int current_row = i / this->dim;
-            int current_col = i % this->dim;
-            distance += std::abs(goal_row - current_row) + std::abs(goal_col - current_col);
+        int val = this->data[i];
+        if (val != 0) { // Skip the blank tile
+            int goal_row = (val - 1) / dim;
+            int goal_col = (val - 1) % dim;
+            int curr_row = i / dim;
+            int curr_col = i % dim;
+            distance += std::abs(goal_row - curr_row) + std::abs(goal_col - curr_col);
         }
     }
     return distance;
 }
 int Node::get_misplaced_tiles() {
+    // simple add up
     int count = 0;
     for (int i = 0; i < this->data.size(); ++i) {
-        if (this->data[i] != 0 && this->data[i] != i) {
+        if (this->data[i] != 0 && this->data[i] != i+1) {
             count++;
         }
     }
@@ -94,14 +98,12 @@ int Node::get_dim() const {
 int Node::get_size() const {
     return this->data.size();
 }
-
 int Node::get_gn() const {
     return this->gn;
 }
 int Node::get_hn() const {
     return this->hn;
 }
-
 void Node::set_hn(int hn){
     this->hn = hn;
 }
@@ -124,10 +126,10 @@ Problem::Problem(std::vector<int> init_value) {
         throw std::invalid_argument("Invalid initial state size");
     }
     this->initial_state = Node(init_value,0);
- 
-    std::vector<int> goal_data(init_value.size());
-    for (int i = 0; i < init_value.size(); i++) {
-        goal_data[i] = i;
+    // 0 at the back
+    std::vector<int> goal_data(init_value.size(),0);
+    for (int i = 0; i < init_value.size()-1; i++) {
+        goal_data[i] = i+1;
     }
     this->goal_state = Node(goal_data,0);
     // Initialize goal state 0 to n-1
@@ -141,57 +143,59 @@ int Problem::get_dim() const {
     return this->dim;
 }
 
-
 //This is the core of the program
 int GeneralSearch(Problem& problem,
     std::function<void(std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, NodeComparator>&,
                        const std::vector<std::shared_ptr<Node>>&, SearchType)> queueing_function,
     SearchType type){
     
+    // metrics
+    int expanded_nodes = 0;
     // This is effective the make queue
     std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, NodeComparator> frontier;
     std::unordered_set<std::string> explored;
     auto start_node = std::make_shared<Node>(problem.get_initial_state());
+    std::cout << "Initial state:\n";
+    start_node->print();
+    explored.insert(start_node->get_state_string());
     frontier.push(start_node);
 
     while (!frontier.empty()) {
         auto current_node = frontier.top();
-        std::cout << "pop\n";
         frontier.pop();
-
+        std::cout<<"Current Cost: "<<current_node->get_cost()<<"\n";
+        expanded_nodes++;
         
         // Goal test
         if (problem.GOAL_TEST(*current_node)) {
             auto end_time = std::chrono::high_resolution_clock::now();
-            std::cout << "Solution found with cost: " << current_node->get_cost() << "\n";
+            std::cout << "Goal state reached!\n";
+            std::cout << "Expanded nodes: " << expanded_nodes << "\n";
+            std::cout << "Solution found with depth and cost: " << current_node->get_gn()<<", "<< current_node->get_cost() << "\n";
             current_node->print(); // Assuming this prints the path or state
             return current_node->get_cost();
         }
 
-        std::cout << "Exploring node with cost: " << current_node->get_cost() << "\n";
+        std::cout << "Exploring node with depth: " << current_node->get_gn() << "\n";
         current_node->print();
-        std::cout<<"insert string\n";
-        explored.insert(current_node->get_state_string());
+ 
+   
 
         // Expand node
         std::vector<std::shared_ptr<Node>> successors;
         for (const auto& op : problem.OPERATORS) {
             try {
-                std::cout << "Creating child node\n";
                 auto child = std::make_shared<Node>(*current_node, op, current_node->get_gn() + 1);
                 if (explored.find(child->get_state_string()) == explored.end()) {
-                    std::cout<< "push\n";
                     successors.push_back(child);
+                    explored.insert(child->get_state_string());
                 }
-                std::cout << "Child node created\n";
             } catch (const std::invalid_argument& e) {
-                std::cerr << "Invalid move: " << e.what() << std::endl;
                 continue;
             }
         }
 
         // Apply the queueing function
-        std::cout << "Queueing function\n";
         queueing_function(frontier, successors, type);
     }
 
@@ -204,6 +208,7 @@ int GeneralSearch(Problem& problem,
 
 void QueueingFunction(std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, NodeComparator>& frontier,
     const std::vector<std::shared_ptr<Node>>& new_nodes, SearchType type){
+    
 
     for (const auto& node : new_nodes) {
         if (type == SearchType::Uniform_Cost) {

@@ -26,15 +26,14 @@ class Node {
         int get_manhattan_distance();
         int get_misplaced_tiles();
         std::vector<int> get_state() const;
+
         bool operator==(const Node& other) const;
-    
         bool operator<(const Node& other) const;
         bool operator>(const Node& other) const;
         void print() const;
     
-        int get_manhattan_distance() const { return hn; }
-        int get_misplaced_tiles() const { return hn; }
-        
+
+
         int get_hn() const;
         int get_gn() const;
         int get_cost() const;
@@ -60,11 +59,8 @@ class Node {
 
 // Node comparator for priority queue
 struct NodeComparator {
-    bool operator()(const Node& a, const Node& b) {
-        return a > b;
-    }
     bool operator()(const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b) const {
-        return *a > *b; // Assumes Node has operator> defined
+        return *a > *b; 
     }
 };
 

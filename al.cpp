@@ -13,15 +13,17 @@ Node::Node(const std::vector<int>& data, int gen) {
     this->data = data;
     this->gn = gen;
     this->hn = 0;
+    this->dim = static_cast<int>(std::sqrt(data.size()));
 }
 
 Node::Node(const Node& other, std::pair<int, int> move, int gen) {
     this->data = other.data;
     this->gn = gen;
     this->hn = 0;
+    this->dim = other.dim;
     int zero_index = std::find(this->data.begin(), this->data.end(), 0) - this->data.begin();
-    int zero_row = zero_index / dim;
-    int zero_col = zero_index % dim;
+    int zero_row = zero_index / this->dim;
+    int zero_col = zero_index % this->dim;
     int new_row = zero_row + move.first;
     int new_col = zero_col + move.second;
     if (new_row >= 0 && new_row < dim && new_col >= 0 && new_col < dim) {
@@ -66,14 +68,13 @@ void Node::print() const {
 
 int Node::get_manhattan_distance() {
     int distance = 0;
-    int dim = 3; // Dimension of the puzzle (3x3)
     for (int i = 0; i < this->data.size(); ++i) {
         int val = this->data[i];
         if (val != 0) { // Skip the blank tile
-            int goal_row = (val - 1) / dim;
-            int goal_col = (val - 1) % dim;
-            int curr_row = i / dim;
-            int curr_col = i % dim;
+            int goal_row = (val - 1) / this->dim;
+            int goal_col = (val - 1) % this->dim;
+            int curr_row = i / this->dim;
+            int curr_col = i % this->dim;
             distance += std::abs(goal_row - curr_row) + std::abs(goal_col - curr_col);
         }
     }
@@ -151,6 +152,7 @@ int GeneralSearch(Problem& problem,
     
     // metrics
     int expanded_nodes = 0;
+
     // This is effective the make queue
     std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, NodeComparator> frontier;
     std::unordered_set<std::string> explored;
@@ -160,13 +162,16 @@ int GeneralSearch(Problem& problem,
     explored.insert(start_node->get_state_string());
     frontier.push(start_node);
 
+    // Do the search, the empy clause is outside the loop
     while (!frontier.empty()) {
+
+        //effective: node = REMOVE-FRONT(nodes) 
         auto current_node = frontier.top();
         frontier.pop();
         std::cout<<"Current Cost: "<<current_node->get_cost()<<"\n";
         expanded_nodes++;
         
-        // Goal test
+        //effective: if problem.GOAL-TEST(node.STATE) succeeds then return node 
         if (problem.GOAL_TEST(*current_node)) {
             auto end_time = std::chrono::high_resolution_clock::now();
             std::cout << "Goal state reached!\n";
@@ -195,10 +200,10 @@ int GeneralSearch(Problem& problem,
             }
         }
 
-        // Apply the queueing function
+        //effective:  nodes = QUEUEING-FUNCTION(nodes, EXPAND(node, problem.OPERATORS))
         queueing_function(frontier, successors, type);
     }
-
+    // Fail state
     std::cout << "Failure: No solution found.\n";
     return -1;
 
@@ -206,13 +211,13 @@ int GeneralSearch(Problem& problem,
 
 }
 
+//Calculate the heuristic value for each node and add it to the priority queue
 void QueueingFunction(std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, NodeComparator>& frontier,
     const std::vector<std::shared_ptr<Node>>& new_nodes, SearchType type){
-    
+    // Note that gn is calculated when creation.
 
     for (const auto& node : new_nodes) {
         if (type == SearchType::Uniform_Cost) {
-            // We already added cost when creating the node
             node->set_hn(0);
             frontier.push(node);
         } else if (type == SearchType::AStar_Manhattan) {

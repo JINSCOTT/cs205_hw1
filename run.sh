@@ -1,1 +1,1 @@
- ./hw1 3 ./inputs/input8_3.txt
+ ./hw1 2 ./inputs/input8_3.txt

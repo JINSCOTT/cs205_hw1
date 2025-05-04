@@ -10,8 +10,7 @@
 // hw1 <search mothod> <data file> e.g. hw1 {1, 2, 3} input.txt
 // 1 for Uniform Cost Search
 // 2 for A* with Manhattan distance
-// 3 for A* with Misplaced Tile heuristic
-
+// 3 for A* with Misplaced Tile heuristi1234
 
 int main( int argc, char* argv[] ) {
     std::ios_base::sync_with_stdio(false);
@@ -45,8 +44,6 @@ int main( int argc, char* argv[] ) {
     }
     file.close();
 
-    //Starting the puzzle part
-
     // Create the problem object
     std::unique_ptr<Problem> p;
     try {
@@ -72,12 +69,10 @@ int main( int argc, char* argv[] ) {
             return 1;
     }
        
-
- 
    if(result == -1) {
         std::cout << "No solution found" << std::endl;
     } else {
-        std::cout << "Solution found with cost: " << result << std::endl;
+        std::cout << "Program ended"<< std::endl;
     }
 
     return 0;

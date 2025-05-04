@@ -66,6 +66,22 @@ void Node::print() const {
     }
 }
 
+void Node::print_parent() const {
+    std::vector<std::shared_ptr<Node>> path;
+    if (this->parent) {
+        auto current = this->parent;
+        while (current) {
+            path.push_back(current);
+            current = current->parent;
+        }
+        std::reverse(path.begin(), path.end());
+        for (const auto& node : path) {
+            node->print();
+            std::cout << "Depth: " << node->get_gn() << std::endl;
+        }
+    } 
+}
+
 int Node::get_manhattan_distance() {
     int distance = 0;
     for (int i = 0; i < this->data.size(); ++i) {
@@ -152,12 +168,13 @@ int GeneralSearch(Problem& problem,
     
     // metrics
     int expanded_nodes = 0;
+    auto start_time = std::chrono::high_resolution_clock::now();
 
     // This is effective the make queue
     std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, NodeComparator> frontier;
     std::unordered_set<std::string> explored;
     auto start_node = std::make_shared<Node>(problem.get_initial_state());
-    std::cout << "Initial state:\n";
+    std::cout << "Initial state:"<<std::endl;
     start_node->print();
     explored.insert(start_node->get_state_string());
     frontier.push(start_node);
@@ -168,24 +185,24 @@ int GeneralSearch(Problem& problem,
         //effective: node = REMOVE-FRONT(nodes) 
         auto current_node = frontier.top();
         frontier.pop();
-        std::cout<<"Current Cost: "<<current_node->get_cost()<<"\n";
+        std::cout<<"Current Cost: "<<current_node->get_cost()<<std::endl;
         expanded_nodes++;
         
         //effective: if problem.GOAL-TEST(node.STATE) succeeds then return node 
         if (problem.GOAL_TEST(*current_node)) {
             auto end_time = std::chrono::high_resolution_clock::now();
-            std::cout << "Goal state reached!\n";
-            std::cout << "Expanded nodes: " << expanded_nodes << "\n";
-            std::cout << "Solution found with depth and cost: " << current_node->get_gn()<<", "<< current_node->get_cost() << "\n";
-            current_node->print(); // Assuming this prints the path or state
+            std::cout << "Goal state reached!" << std::endl;
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+            std::cout << "Time taken: " << duration.count() << " ms"<< std::endl;
+            std::cout << "Expanded nodes: " << expanded_nodes << std::endl;
+            std::cout << "Solution found with depth and cost: " << current_node->get_gn()<<", "<< current_node->get_cost() << std::endl;
+            std::cout << "Solution path:"<<std::endl;
+            current_node->print_parent();
             return current_node->get_cost();
         }
 
-        std::cout << "Exploring node with depth: " << current_node->get_gn() << "\n";
+        std::cout << "Exploring node with depth: " << current_node->get_gn() << std::endl;
         current_node->print();
- 
-   
-
         // Expand node
         std::vector<std::shared_ptr<Node>> successors;
         for (const auto& op : problem.OPERATORS) {
@@ -193,6 +210,7 @@ int GeneralSearch(Problem& problem,
                 auto child = std::make_shared<Node>(*current_node, op, current_node->get_gn() + 1);
                 if (explored.find(child->get_state_string()) == explored.end()) {
                     successors.push_back(child);
+                    child->set_parent(current_node);
                     explored.insert(child->get_state_string());
                 }
             } catch (const std::invalid_argument& e) {
@@ -202,13 +220,14 @@ int GeneralSearch(Problem& problem,
 
         //effective:  nodes = QUEUEING-FUNCTION(nodes, EXPAND(node, problem.OPERATORS))
         queueing_function(frontier, successors, type);
+
     }
     // Fail state
-    std::cout << "Failure: No solution found.\n";
+    std::cout << "Failure: No solution found."<<std::endl;
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "Time taken: " << duration.count() << " ms"<<std::endl;
     return -1;
-
-
-
 }
 
 //Calculate the heuristic value for each node and add it to the priority queue

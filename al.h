@@ -18,42 +18,43 @@ enum class SearchType {
 
 class Node {
     public:
+
         Node();
         Node(const std::vector<int>& data, int gen = 0);
         Node(const Node& other, std::pair<int, int> move, int gen);
         Node& operator=( const Node& other) ;
 
+        
         int get_manhattan_distance();
         int get_misplaced_tiles();
         std::vector<int> get_state() const;
-
+       
+        // Operator
         bool operator==(const Node& other) const;
         bool operator<(const Node& other) const;
         bool operator>(const Node& other) const;
-        void print() const;
     
-
-
+        // Utility
+        void print() const;
+        void print_parent() const;
         int get_hn() const;
         int get_gn() const;
         int get_cost() const;
         int get_dim() const;
         int get_size() const;
-    
-       void set_hn(int hn);
+        void set_hn(int hn);
         void set_gn(int gn);
+        void set_parent(std::shared_ptr<Node> parent) { this->parent = parent; }
+        // Created string representation for hashing
         std::string get_state_string() const;
 
-        // Getters for private members
-      
-     
-    
     private:
 
         int dim = 3;
         int gn = 0;
         int hn = 0;
         std::vector<int> data;
+        std::shared_ptr<Node> parent;
     };
 
 

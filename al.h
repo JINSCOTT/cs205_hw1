@@ -24,7 +24,7 @@ class Node {
         Node(const Node& other, std::pair<int, int> move, int gen);
         Node& operator=( const Node& other) ;
 
-        
+        // Main algorithm
         int get_manhattan_distance();
         int get_misplaced_tiles();
         std::vector<int> get_state() const;
@@ -65,6 +65,7 @@ struct NodeComparator {
     }
 };
 
+// Problem class, describes the space and operators
 class Problem{
 public:
     Problem(std::vector<int> init_value);
@@ -90,7 +91,5 @@ int GeneralSearch(Problem& problem,
 
 void QueueingFunction(std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, NodeComparator>& frontier,
     const std::vector<std::shared_ptr<Node>>& new_nodes, SearchType type);
-
-
 
 #endif // AL_H

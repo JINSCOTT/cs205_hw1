@@ -59,7 +59,7 @@ int main( int argc, char* argv[] ) {
             result = GeneralSearch(*p, QueueingFunction, SearchType::Uniform_Cost);
             break;
         case 2:
-            result = GeneralSearch(*p, QueueingFunction,SearchType::AStar_Manhattan); 
+            result = GeneralSearch(*p, QueueingFunction, SearchType::AStar_Manhattan); 
             break;
         case 3:
             result = GeneralSearch(*p, QueueingFunction, SearchType::Astar_Missplaced_Tile);

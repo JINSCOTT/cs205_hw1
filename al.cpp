@@ -1,4 +1,5 @@
 #include"al.h"
+
 Node::Node() {
     this->dim = 3;
     this->gn = 0;
@@ -9,6 +10,7 @@ Node::Node() {
     }
     this->data[this->dim * this->dim - 1] = 0; 
 }
+
 Node::Node(const std::vector<int>& data, int gen) {
     this->data = data;
     this->gn = gen;
@@ -21,6 +23,7 @@ Node::Node(const Node& other, std::pair<int, int> move, int gen) {
     this->gn = gen;
     this->hn = 0;
     this->dim = other.dim;
+    // Move the zero tile, translate 1d to 2d to operate
     int zero_index = std::find(this->data.begin(), this->data.end(), 0) - this->data.begin();
     int zero_row = zero_index / this->dim;
     int zero_col = zero_index % this->dim;
@@ -51,12 +54,15 @@ Node& Node::operator=( const Node& other) {
     }
     return *this;
 }
+
 bool Node::operator<(const Node& other) const {
     return (this->gn + this->hn) < (other.gn + other.hn);
 }
+
 bool Node::operator>(const Node& other) const {
     return (this->gn + this->hn) > (other.gn + other.hn);
 }
+
 void Node::print() const {
     for (int i = 0; i < this->dim; ++i) {
         for (int j = 0; j < this->dim; ++j) {
@@ -66,6 +72,7 @@ void Node::print() const {
     }
 }
 
+// Print out the path from root to this node
 void Node::print_parent() const {
     std::vector<std::shared_ptr<Node>> path;
     if (this->parent) {
@@ -82,6 +89,7 @@ void Node::print_parent() const {
     } 
 }
 
+// Calculates the Manhattan distance for the current node
 int Node::get_manhattan_distance() {
     int distance = 0;
     for (int i = 0; i < this->data.size(); ++i) {
@@ -96,6 +104,8 @@ int Node::get_manhattan_distance() {
     }
     return distance;
 }
+
+// Calculates the number of misplaced tiles for the current node
 int Node::get_misplaced_tiles() {
     // simple add up
     int count = 0;
@@ -106,34 +116,41 @@ int Node::get_misplaced_tiles() {
     }
     return count;
 }
+
 int Node::get_cost() const {
     return this->gn + this->hn;
 }
+
 int Node::get_dim() const {
     return this->dim;
 }
+
 int Node::get_size() const {
     return this->data.size();
 }
+
 int Node::get_gn() const {
     return this->gn;
 }
+
 int Node::get_hn() const {
     return this->hn;
 }
+
 void Node::set_hn(int hn){
     this->hn = hn;
 }
+
 void Node::set_gn(int gn){
     this->gn = gn;
 }
+
 std::string Node::get_state_string() const{
     std::string state_str;
     for (const auto& val : this->data) {
         state_str += std::to_string(val) + ",";
     }
     return state_str;
-
 }
 
 Problem::Problem(std::vector<int> init_value) {
@@ -153,9 +170,11 @@ Problem::Problem(std::vector<int> init_value) {
    
 }
 
+// Check if the current node is the goal state
 bool Problem::GOAL_TEST(const Node& node) {
     return node.get_state() == this->goal_state.get_state();
 }
+
 int Problem::get_dim() const {
     return this->dim;
 }
